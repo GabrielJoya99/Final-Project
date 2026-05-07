@@ -1,0 +1,566 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recipe Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FAFAF7;
+    --bg2: #F2F0EA;
+    --card: #FFFFFF;
+    --text: #1C1A15;
+    --text2: #6B6760;
+    --text3: #9E9B95;
+    --border: rgba(28,26,21,0.1);
+    --border2: rgba(28,26,21,0.18);
+    --green: #3B6D11;
+    --green-bg: #EAF3DE;
+    --green-mid: #639922;
+    --orange: #BA7517;
+    --orange-bg: #FAEEDA;
+    --orange-mid: #EF9F27;
+    --red: #A32D2D;
+    --red-bg: #FCEBEB;
+    --accent: #3B6D11;
+    --shadow: 0 2px 12px rgba(28,26,21,0.08);
+    --shadow-lg: 0 8px 32px rgba(28,26,21,0.12);
+    --radius: 14px;
+    --radius-sm: 8px;
+    --transition: 0.2s cubic-bezier(0.4,0,0.2,1);
+  }
+  .dark {
+    --bg: #161512;
+    --bg2: #1F1D18;
+    --card: #252320;
+    --text: #F0EDE6;
+    --text2: #A8A49C;
+    --text3: #706D66;
+    --border: rgba(240,237,230,0.08);
+    --border2: rgba(240,237,230,0.15);
+    --green: #97C459;
+    --green-bg: #17340A;
+    --green-mid: #639922;
+    --orange: #EF9F27;
+    --orange-bg: #412402;
+    --orange-mid: #BA7517;
+    --red: #F09595;
+    --red-bg: #501313;
+    --accent: #97C459;
+    --shadow: 0 2px 12px rgba(0,0,0,0.3);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); font-size:15px; line-height:1.6; transition:background var(--transition),color var(--transition); min-height:100vh; }
+
+  nav { position:sticky; top:0; z-index:100; background:var(--bg); border-bottom:1px solid var(--border); padding:0 1.5rem; display:flex; align-items:center; justify-content:space-between; height:60px; backdrop-filter:blur(12px); }
+  .nav-logo { font-family:'Fraunces',serif; font-size:1.35rem; color:var(--text); display:flex; align-items:center; gap:8px; }
+  .logo-icon { width:32px; height:32px; background:var(--green); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:16px; }
+  .nav-right { display:flex; align-items:center; gap:12px; }
+  .dark-toggle { background:none; border:1px solid var(--border2); border-radius:20px; padding:6px 12px; cursor:pointer; font-size:13px; color:var(--text2); transition:all var(--transition); font-family:'DM Sans',sans-serif; display:flex; align-items:center; gap:6px; }
+  .dark-toggle:hover { background:var(--bg2); color:var(--text); }
+  .fav-btn-nav { background:none; border:1px solid var(--border2); border-radius:20px; padding:6px 14px; cursor:pointer; font-size:13px; color:var(--text2); transition:all var(--transition); font-family:'DM Sans',sans-serif; }
+  .fav-btn-nav:hover { background:var(--bg2); }
+
+  .hero { padding:3.5rem 1.5rem 2.5rem; max-width:860px; margin:0 auto; text-align:center; }
+  .hero h1 { font-family:'Fraunces',serif; font-size:clamp(2rem,5vw,3.2rem); font-weight:600; line-height:1.15; color:var(--text); margin-bottom:1rem; }
+  .hero h1 em { color:var(--green); font-style:italic; }
+  .hero p { color:var(--text2); font-size:1rem; max-width:480px; margin:0 auto 2rem; }
+
+  .input-section { max-width:860px; margin:0 auto; padding:0 1.5rem 2rem; }
+  .ingredient-input-box { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem; box-shadow:var(--shadow); }
+  .ingredient-input-row { display:flex; gap:10px; }
+  .ingredient-input-row input { flex:1; border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 14px; background:var(--bg); color:var(--text); font-size:14px; font-family:'DM Sans',sans-serif; outline:none; transition:border-color var(--transition); }
+  .ingredient-input-row input:focus { border-color:var(--green); }
+  .ingredient-input-row input::placeholder { color:var(--text3); }
+  .btn-add { background:var(--green); color:#fff; border:none; border-radius:var(--radius-sm); padding:10px 20px; cursor:pointer; font-size:14px; font-weight:500; font-family:'DM Sans',sans-serif; white-space:nowrap; transition:all var(--transition); }
+  .btn-add:hover { opacity:0.85; transform:translateY(-1px); }
+  .btn-voice { background:var(--bg2); color:var(--text2); border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 14px; cursor:pointer; font-size:14px; transition:all var(--transition); }
+  .btn-voice:hover { background:var(--border); color:var(--text); }
+  .btn-voice.listening { background:var(--red-bg); color:var(--red); border-color:var(--red); animation:pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+  .chips { display:flex; flex-wrap:wrap; gap:8px; margin-top:1rem; min-height:0; }
+  .chip { display:inline-flex; align-items:center; gap:6px; background:var(--green-bg); color:var(--green); border-radius:20px; padding:5px 12px; font-size:13px; font-weight:500; animation:chipIn 0.2s ease; }
+  @keyframes chipIn { from{opacity:0;transform:scale(0.85)} to{opacity:1;transform:scale(1)} }
+  .chip-x { background:none; border:none; cursor:pointer; color:var(--green); font-size:15px; line-height:1; padding:0; margin-left:2px; }
+  .chip-x:hover { color:var(--red); }
+
+  .filters-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:1.25rem; padding-top:1.25rem; border-top:1px solid var(--border); align-items:center; }
+  .filter-label { font-size:12px; color:var(--text3); font-weight:500; text-transform:uppercase; letter-spacing:0.05em; margin-right:4px; }
+  .filter-chip { border:1px solid var(--border2); border-radius:20px; padding:5px 14px; font-size:13px; cursor:pointer; transition:all var(--transition); background:transparent; color:var(--text2); font-family:'DM Sans',sans-serif; }
+  .filter-chip:hover { border-color:var(--green); color:var(--green); }
+  .filter-chip.active { background:var(--green); color:#fff; border-color:var(--green); }
+
+  .actions-row { display:flex; gap:10px; margin-top:1.25rem; flex-wrap:wrap; }
+  .btn-generate { flex:1; background:var(--green); color:#fff; border:none; border-radius:var(--radius-sm); padding:13px 24px; cursor:pointer; font-size:15px; font-weight:600; font-family:'Fraunces',serif; transition:all var(--transition); display:flex; align-items:center; justify-content:center; gap:8px; }
+  .btn-generate:hover:not(:disabled) { opacity:0.88; transform:translateY(-1px); box-shadow:0 4px 16px rgba(59,109,17,0.3); }
+  .btn-generate:disabled { opacity:0.5; cursor:not-allowed; }
+  .btn-surprise { background:var(--orange-bg); color:var(--orange); border:1px solid var(--orange-mid); border-radius:var(--radius-sm); padding:13px 20px; cursor:pointer; font-size:14px; font-weight:500; font-family:'DM Sans',sans-serif; transition:all var(--transition); display:flex; align-items:center; gap:6px; white-space:nowrap; }
+  .btn-surprise:hover { background:var(--orange-mid); color:#fff; }
+
+  .search-bar-wrap { max-width:860px; margin:0 auto 1.5rem; padding:0 1.5rem; }
+  .search-bar { position:relative; }
+  .search-bar input { width:100%; border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 14px 10px 40px; background:var(--card); color:var(--text); font-size:14px; font-family:'DM Sans',sans-serif; outline:none; transition:border-color var(--transition); }
+  .search-bar input:focus { border-color:var(--green-mid); }
+  .search-icon { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text3); font-size:16px; pointer-events:none; }
+
+  .results { max-width:860px; margin:0 auto; padding:0 1.5rem 3rem; }
+  .results-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.25rem; }
+  .results-header h2 { font-family:'Fraunces',serif; font-size:1.4rem; color:var(--text); }
+  .results-count { font-size:13px; color:var(--text3); }
+
+  .recipes-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:1.25rem; }
+  .recipe-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); transition:all var(--transition); cursor:pointer; animation:cardIn 0.3s ease forwards; opacity:0; }
+  .recipe-card:hover { box-shadow:var(--shadow-lg); transform:translateY(-3px); border-color:var(--border2); }
+  @keyframes cardIn { to{opacity:1;transform:translateY(0)} from{opacity:0;transform:translateY(16px)} }
+  .card-img { width:100%; height:180px; object-fit:cover; position:relative; overflow:hidden; }
+  .card-img-placeholder { width:100%; height:180px; display:flex; align-items:center; justify-content:center; font-size:3rem; }
+  .card-badges { position:absolute; top:10px; left:10px; display:flex; gap:6px; flex-wrap:wrap; }
+  .badge { font-size:11px; font-weight:600; padding:3px 9px; border-radius:12px; }
+  .badge-match { background:var(--green); color:#fff; }
+  .badge-diet { background:rgba(255,255,255,0.92); color:var(--green); border:1px solid var(--green-mid); }
+  .badge-time { background:rgba(255,255,255,0.92); color:var(--orange); }
+  .card-body { padding:1rem 1.15rem; }
+  .card-title { font-family:'Fraunces',serif; font-size:1.1rem; font-weight:600; color:var(--text); margin-bottom:4px; }
+  .card-desc { font-size:13px; color:var(--text2); margin-bottom:10px; line-height:1.5; }
+  .card-meta { display:flex; gap:14px; font-size:12px; color:var(--text3); margin-bottom:10px; }
+  .card-meta span { display:flex; align-items:center; gap:4px; }
+  .card-ingredients { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:10px; }
+  .ing-tag { font-size:11px; padding:2px 8px; border-radius:10px; }
+  .ing-match { background:var(--green-bg); color:var(--green); }
+  .ing-miss { background:var(--red-bg); color:var(--red); }
+  .match-bar { height:4px; background:var(--bg2); border-radius:2px; overflow:hidden; margin-bottom:10px; }
+  .match-bar-fill { height:100%; border-radius:2px; transition:width 0.6s ease; }
+  .card-footer { display:flex; align-items:center; justify-content:space-between; }
+  .btn-view { font-size:13px; color:var(--green); background:none; border:1px solid var(--border); border-radius:var(--radius-sm); padding:6px 14px; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all var(--transition); }
+  .btn-view:hover { background:var(--green); color:#fff; border-color:var(--green); }
+  .btn-fav { background:none; border:none; cursor:pointer; font-size:18px; transition:transform var(--transition); }
+  .btn-fav:hover { transform:scale(1.2); }
+  .nutrition-mini { display:flex; gap:10px; font-size:11px; color:var(--text3); padding-top:8px; border-top:1px solid var(--border); margin-top:8px; }
+  .nutrition-mini span { display:flex; flex-direction:column; align-items:center; }
+  .nutrition-mini strong { font-size:13px; color:var(--text); font-weight:600; }
+
+  .empty-state { text-align:center; padding:4rem 1.5rem; }
+  .empty-icon { font-size:4rem; margin-bottom:1rem; opacity:0.4; }
+  .empty-state h3 { font-family:'Fraunces',serif; font-size:1.5rem; color:var(--text2); margin-bottom:0.5rem; }
+  .empty-state p { color:var(--text3); font-size:0.95rem; }
+
+  .loading-overlay { text-align:center; padding:3rem; }
+  .loading-spinner { width:40px; height:40px; border:3px solid var(--border); border-top-color:var(--green); border-radius:50%; animation:spin 0.7s linear infinite; margin:0 auto 1rem; }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  .loading-text { color:var(--text2); font-family:'Fraunces',serif; font-style:italic; }
+
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; display:flex; align-items:flex-start; justify-content:center; overflow-y:auto; padding:2rem 1rem; backdrop-filter:blur(4px); animation:fadeIn 0.2s ease; }
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+  .modal { background:var(--card); border-radius:var(--radius); max-width:680px; width:100%; box-shadow:var(--shadow-lg); animation:slideUp 0.25s ease; }
+  @keyframes slideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+  .modal-header { position:relative; }
+  .modal-img { width:100%; height:220px; object-fit:cover; border-radius:var(--radius) var(--radius) 0 0; display:flex; align-items:center; justify-content:center; font-size:5rem; background:var(--bg2); }
+  .modal-close { position:absolute; top:12px; right:12px; background:rgba(0,0,0,0.45); color:#fff; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; transition:background var(--transition); }
+  .modal-close:hover { background:rgba(0,0,0,0.7); }
+  .modal-body { padding:1.5rem; }
+  .modal-title { font-family:'Fraunces',serif; font-size:1.6rem; font-weight:600; margin-bottom:0.4rem; }
+  .modal-meta { display:flex; gap:16px; font-size:13px; color:var(--text2); margin-bottom:1rem; flex-wrap:wrap; }
+  .modal-desc { color:var(--text2); margin-bottom:1.25rem; font-size:0.95rem; line-height:1.7; }
+  .modal-section { margin-bottom:1.25rem; }
+  .modal-section h4 { font-size:0.8rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--text3); font-weight:600; margin-bottom:0.75rem; }
+  .ingredients-cols { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+  .ing-item { font-size:13px; padding:5px 10px; border-radius:var(--radius-sm); }
+  .ing-item.have { background:var(--green-bg); color:var(--green); }
+  .ing-item.need { background:var(--red-bg); color:var(--red); }
+  .steps-list { list-style:none; display:flex; flex-direction:column; gap:10px; }
+  .step-item { display:flex; gap:12px; font-size:14px; }
+  .step-num { width:26px; height:26px; border-radius:50%; background:var(--green); color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+  .step-text { color:var(--text); line-height:1.6; padding-top:3px; }
+  .nutrition-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .nut-card { background:var(--bg2); border-radius:var(--radius-sm); padding:10px; text-align:center; }
+  .nut-val { font-size:1.2rem; font-weight:700; color:var(--text); }
+  .nut-label { font-size:11px; color:var(--text3); margin-top:2px; }
+  .shopping-list { background:var(--orange-bg); border-radius:var(--radius-sm); padding:1rem; }
+  .shopping-list h5 { color:var(--orange); font-size:13px; font-weight:600; margin-bottom:8px; }
+  .shopping-item { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--text); padding:3px 0; cursor:pointer; }
+  .shopping-item input[type=checkbox] { accent-color:var(--orange); }
+  .modal-actions { display:flex; gap:10px; padding-top:1rem; border-top:1px solid var(--border); margin-top:1rem; flex-wrap:wrap; }
+  .btn-modal-fav { flex:1; background:var(--green); color:#fff; border:none; border-radius:var(--radius-sm); padding:10px; cursor:pointer; font-size:14px; font-weight:500; font-family:'DM Sans',sans-serif; transition:opacity var(--transition); }
+  .btn-modal-fav:hover { opacity:0.85; }
+  .btn-copy { flex:1; background:var(--bg2); color:var(--text); border:1px solid var(--border2); border-radius:var(--radius-sm); padding:10px; cursor:pointer; font-size:14px; font-family:'DM Sans',sans-serif; transition:all var(--transition); }
+  .btn-copy:hover { background:var(--border); }
+
+  .favs-panel { max-width:860px; margin:0 auto; padding:0 1.5rem 3rem; display:none; }
+  .favs-panel.visible { display:block; }
+  .favs-panel h2 { font-family:'Fraunces',serif; font-size:1.4rem; margin-bottom:1.25rem; }
+
+  footer { border-top:1px solid var(--border); padding:1.5rem; text-align:center; color:var(--text3); font-size:13px; background:var(--bg2); }
+
+  @media (max-width:580px) {
+    .hero { padding:2rem 1rem 1.5rem; }
+    .input-section,.results,.search-bar-wrap,.favs-panel { padding-left:1rem; padding-right:1rem; }
+    nav { padding:0 1rem; }
+    .recipes-grid { grid-template-columns:1fr; }
+    .ingredients-cols { grid-template-columns:1fr; }
+    .nutrition-grid { grid-template-columns:repeat(2,1fr); }
+    .actions-row { flex-direction:column; }
+    .btn-generate,.btn-surprise { width:100%; justify-content:center; }
+    .modal-body { padding:1rem; }
+    .modal { margin:0; border-radius:var(--radius) var(--radius) 0 0; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">
+    <div class="logo-icon">🥘</div>
+    Saveur
+  </div>
+  <div class="nav-right">
+    <button class="fav-btn-nav" onclick="toggleFavs()">❤️ Favorites (<span id="fav-count">0</span>)</button>
+    <button class="dark-toggle" onclick="toggleDark()"><span id="dark-icon">🌙</span> <span id="dark-label">Dark</span></button>
+  </div>
+</nav>
+
+<main>
+  <section class="hero">
+    <h1>Turn ingredients into<br><em>delicious recipes</em></h1>
+    <p>Enter what's in your kitchen and we'll find the best recipes you can make right now.</p>
+  </section>
+
+  <section class="input-section">
+    <div class="ingredient-input-box">
+      <div class="ingredient-input-row">
+        <input type="text" id="ing-input" placeholder="Type an ingredient (e.g. chicken, garlic…)" onkeydown="handleIngKey(event)">
+        <button class="btn-voice" id="voice-btn" onclick="toggleVoice()" title="Voice input">🎤</button>
+        <button class="btn-add" onclick="addIngredient()">Add</button>
+      </div>
+      <div class="chips" id="chips-container"></div>
+      <div class="filters-row">
+        <span class="filter-label">Filters:</span>
+        <button class="filter-chip" data-filter="vegetarian" onclick="toggleFilter(this)">🥦 Vegetarian</button>
+        <button class="filter-chip" data-filter="vegan" onclick="toggleFilter(this)">🌱 Vegan</button>
+        <button class="filter-chip" data-filter="gluten-free" onclick="toggleFilter(this)">🌾 Gluten-Free</button>
+        <button class="filter-chip" data-filter="quick" onclick="toggleFilter(this)">⚡ Under 30 min</button>
+      </div>
+      <div class="actions-row">
+        <button class="btn-generate" id="gen-btn" onclick="generateRecipes()">
+          <span id="gen-text">✨ Generate Recipes</span>
+        </button>
+        <button class="btn-surprise" onclick="surpriseMe()">🎲 Surprise Me</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="search-bar-wrap" id="search-wrap" style="display:none">
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-input" placeholder="Search recipes by name or ingredient…" oninput="filterBySearch()">
+    </div>
+  </section>
+
+  <section class="results" id="results-section">
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon">🍽️</div>
+      <h3>Your recipes will appear here</h3>
+      <p>Add some ingredients above and click Generate to get started</p>
+    </div>
+    <div id="loading-state" class="loading-overlay" style="display:none">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Finding the best recipes for you…</div>
+    </div>
+    <div id="results-header" class="results-header" style="display:none">
+      <h2>Suggested Recipes</h2>
+      <span class="results-count" id="results-count"></span>
+    </div>
+    <div class="recipes-grid" id="recipes-grid"></div>
+  </section>
+
+  <section class="favs-panel" id="favs-panel">
+    <h2>❤️ Saved Favorites</h2>
+    <div class="recipes-grid" id="favs-grid"></div>
+    <div id="favs-empty" style="text-align:center;color:var(--text3);padding:2rem;display:none">No favorites saved yet.</div>
+  </section>
+</main>
+
+<div class="modal-overlay" id="modal" style="display:none" onclick="closeModal(event)">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<footer>
+  <p>Saveur Recipe Generator &mdash; Discover meals from your kitchen &mdash; Built with ❤️ for food lovers</p>
+</footer>
+
+<script>
+const RECIPES = [
+  { id:1, title:"Garlic Butter Chicken", emoji:"🍗", desc:"Juicy pan-seared chicken with rich garlic butter sauce, perfect for weeknight dinners.", time:25, servings:4, tags:["gluten-free"], ingredients:["chicken","garlic","butter","lemon","thyme","salt","pepper"], steps:["Season chicken with salt and pepper.","Heat a skillet over medium-high heat with olive oil.","Sear chicken 5-6 min per side until golden.","Add butter, garlic and thyme; baste for 2 min.","Squeeze lemon juice, rest 3 min before serving."], nutrition:{cal:380,protein:34,carbs:4,fat:25} },
+  { id:2, title:"Vegetable Fried Rice", emoji:"🍚", desc:"Classic fried rice packed with colourful vegetables and savory umami flavors.", time:20, servings:3, tags:["vegetarian","vegan"], ingredients:["rice","eggs","carrot","peas","onion","soy sauce","garlic","ginger","oil"], steps:["Cook rice day before or use leftover cold rice.","Heat wok over high heat with oil.","Scramble eggs, set aside.","Sauté onion, garlic, ginger 2 min.","Add carrot and peas, stir-fry 3 min.","Add rice, stir-fry 4 min; add soy sauce and eggs."], nutrition:{cal:310,protein:9,carbs:52,fat:8} },
+  { id:3, title:"Pasta Aglio e Olio", emoji:"🍝", desc:"Simple Italian classic – spaghetti tossed with golden garlic, olive oil, and chilli flakes.", time:20, servings:2, tags:["vegetarian"], ingredients:["spaghetti","garlic","olive oil","chilli flakes","parsley","parmesan","salt"], steps:["Boil salted pasta water; cook spaghetti al dente.","Slice garlic thinly; cook in olive oil until golden.","Add chilli flakes, toss in drained pasta.","Add pasta water to emulsify.","Top with parsley and parmesan."], nutrition:{cal:490,protein:14,carbs:68,fat:18} },
+  { id:4, title:"Tomato Basil Soup", emoji:"🍅", desc:"Smooth, comforting tomato soup with fresh basil and a hint of cream.", time:35, servings:4, tags:["vegetarian","gluten-free"], ingredients:["tomatoes","onion","garlic","basil","cream","olive oil","vegetable stock","salt","pepper"], steps:["Roast tomatoes at 200°C for 20 min.","Sauté onion and garlic in olive oil.","Add roasted tomatoes and stock; simmer 10 min.","Blend until smooth.","Stir in cream, season, garnish with basil."], nutrition:{cal:195,protein:4,carbs:18,fat:12} },
+  { id:5, title:"Lemon Herb Salmon", emoji:"🐟", desc:"Oven-baked salmon fillet with lemon, dill, and garlic – healthy and elegant.", time:22, servings:2, tags:["gluten-free"], ingredients:["salmon","lemon","dill","garlic","butter","olive oil","salt","pepper"], steps:["Preheat oven to 200°C.","Rub salmon with olive oil, garlic, salt, pepper.","Top with lemon slices and dill.","Bake 12-14 min until flakes easily.","Finish with a knob of butter."], nutrition:{cal:340,protein:38,carbs:3,fat:19} },
+  { id:6, title:"Black Bean Tacos", emoji:"🌮", desc:"Crispy taco shells loaded with spiced black beans, avocado, and fresh salsa.", time:15, servings:4, tags:["vegetarian","vegan","quick"], ingredients:["black beans","avocado","lime","tomatoes","onion","cumin","chilli","taco shells","coriander"], steps:["Heat beans with cumin and chilli until fragrant.","Dice tomatoes, onion, coriander for salsa.","Smash avocado with lime juice.","Fill taco shells with beans.","Top with salsa and avocado."], nutrition:{cal:290,protein:11,carbs:36,fat:13} },
+  { id:7, title:"Greek Salad", emoji:"🥗", desc:"Fresh cucumber, tomato, olives, and feta tossed in oregano-scented olive oil.", time:10, servings:2, tags:["vegetarian","gluten-free","quick"], ingredients:["cucumber","tomatoes","red onion","olives","feta","olive oil","oregano","lemon"], steps:["Chop cucumber and tomatoes into chunks.","Slice onion thinly.","Combine all vegetables and olives.","Crumble feta on top.","Drizzle olive oil, lemon, and sprinkle oregano."], nutrition:{cal:220,protein:7,carbs:12,fat:17} },
+  { id:8, title:"Chicken Stir-Fry", emoji:"🥢", desc:"Quick and satisfying chicken and vegetable stir-fry in a savory ginger soy sauce.", time:22, servings:3, tags:["quick"], ingredients:["chicken","broccoli","pepper","garlic","ginger","soy sauce","sesame oil","cornstarch","oil"], steps:["Slice chicken thin, toss with cornstarch.","Heat wok to smoking hot.","Cook chicken until golden, set aside.","Stir-fry broccoli and pepper 3 min.","Add garlic and ginger, then sauce ingredients.","Toss chicken back in, serve over rice."], nutrition:{cal:320,protein:29,carbs:18,fat:14} },
+  { id:9, title:"Mushroom Risotto", emoji:"🍄", desc:"Creamy Arborio rice slowly cooked with wild mushrooms, parmesan, and white wine.", time:40, servings:4, tags:["vegetarian","gluten-free"], ingredients:["arborio rice","mushrooms","onion","garlic","white wine","parmesan","butter","vegetable stock","parsley"], steps:["Sauté mushrooms in butter, set aside.","Cook onion and garlic until soft.","Toast rice 2 min; deglaze with wine.","Add stock ladle by ladle, stirring constantly.","Fold in mushrooms, parmesan, and butter."], nutrition:{cal:420,protein:12,carbs:58,fat:14} },
+  { id:10, title:"Avocado Toast", emoji:"🥑", desc:"Creamy avocado on toasted sourdough with chilli flakes and a poached egg.", time:10, servings:1, tags:["vegetarian","quick"], ingredients:["avocado","sourdough bread","eggs","lemon","chilli flakes","salt","olive oil"], steps:["Toast sourdough until golden.","Mash avocado with lemon, salt, and olive oil.","Poach egg in gently simmering water 3 min.","Spread avocado on toast.","Top with egg and chilli flakes."], nutrition:{cal:385,protein:14,carbs:28,fat:26} },
+  { id:11, title:"Beef & Broccoli", emoji:"🥩", desc:"Tender beef strips with crisp broccoli in a savory brown sauce.", time:25, servings:3, tags:[], ingredients:["beef","broccoli","garlic","soy sauce","oyster sauce","sesame oil","cornstarch","ginger","oil"], steps:["Slice beef thin, marinate with soy sauce and cornstarch.","Blanch broccoli 2 min.","Sear beef in hot wok until browned.","Add garlic and ginger.","Add broccoli, oyster sauce, sesame oil; toss."], nutrition:{cal:365,protein:32,carbs:14,fat:20} },
+  { id:12, title:"Shakshuka", emoji:"🍳", desc:"Poached eggs in a spiced tomato and pepper sauce, served with crusty bread.", time:28, servings:3, tags:["vegetarian","gluten-free"], ingredients:["eggs","tomatoes","pepper","onion","garlic","cumin","paprika","chilli","olive oil","feta"], steps:["Sauté onion and pepper in olive oil.","Add garlic, cumin, paprika, chilli.","Pour in tomatoes, simmer 10 min.","Make wells, crack in eggs.","Cover and cook 7 min.","Top with crumbled feta."], nutrition:{cal:245,protein:14,carbs:16,fat:15} },
+  { id:13, title:"Lentil Dal", emoji:"🍛", desc:"Warming red lentil dal with fragrant spices, coconut milk, and fresh coriander.", time:30, servings:4, tags:["vegetarian","vegan","gluten-free"], ingredients:["red lentils","onion","garlic","ginger","tomatoes","coconut milk","cumin","turmeric","garam masala","coriander"], steps:["Fry onion until golden.","Add garlic, ginger, and spices.","Stir in tomatoes and lentils.","Add stock and simmer 20 min.","Pour in coconut milk, adjust seasoning."], nutrition:{cal:275,protein:14,carbs:38,fat:8} },
+  { id:14, title:"Caprese Salad", emoji:"🫒", desc:"Fresh mozzarella, ripe tomatoes, and basil drizzled with balsamic glaze.", time:8, servings:2, tags:["vegetarian","gluten-free","quick"], ingredients:["tomatoes","mozzarella","basil","balsamic vinegar","olive oil","salt","pepper"], steps:["Slice tomatoes and mozzarella evenly.","Alternate slices on a plate.","Tuck basil leaves between.","Drizzle with olive oil and balsamic.","Season and serve immediately."], nutrition:{cal:280,protein:16,carbs:8,fat:21} },
+  { id:15, title:"Banana Pancakes", emoji:"🥞", desc:"Fluffy 3-ingredient banana oat pancakes – naturally sweet and gluten-free.", time:15, servings:2, tags:["vegetarian","gluten-free","quick"], ingredients:["banana","eggs","oats","cinnamon","honey","vanilla"], steps:["Mash banana in a bowl.","Whisk in eggs, vanilla, and cinnamon.","Fold in oat flour.","Cook on non-stick pan over medium heat.","Serve with honey and sliced banana."], nutrition:{cal:290,protein:10,carbs:45,fat:8} },
+  { id:16, title:"Pea & Mint Soup", emoji:"🫛", desc:"Vibrant green soup with fresh peas, mint, and a swirl of cream – ready in minutes.", time:15, servings:3, tags:["vegetarian","gluten-free","quick"], ingredients:["peas","mint","onion","garlic","vegetable stock","cream","butter","salt","pepper"], steps:["Sauté onion and garlic in butter.","Add stock and bring to boil.","Add peas, cook 3 min.","Blend with mint until smooth.","Swirl in cream, season well."], nutrition:{cal:185,protein:8,carbs:22,fat:9} },
+  { id:17, title:"Prawn Pad Thai", emoji:"🍜", desc:"Authentic pad Thai with prawns, rice noodles, tamarind, and crunchy peanuts.", time:20, servings:2, tags:["quick","gluten-free"], ingredients:["prawns","rice noodles","eggs","bean sprouts","spring onions","peanuts","tamarind","fish sauce","lime","oil"], steps:["Soak noodles in warm water 10 min.","Fry prawns until pink, set aside.","Scramble eggs in same wok.","Add noodles and tamarind sauce.","Toss with prawns, sprouts, spring onions.","Serve with peanuts and lime."], nutrition:{cal:415,protein:28,carbs:48,fat:12} },
+  { id:18, title:"Roasted Vegetable Tray Bake", emoji:"🥦", desc:"Colourful seasonal vegetables roasted with herbs and served with tahini dressing.", time:40, servings:4, tags:["vegetarian","vegan","gluten-free"], ingredients:["courgette","pepper","red onion","cherry tomatoes","garlic","olive oil","rosemary","thyme","tahini","lemon"], steps:["Preheat oven to 220°C.","Chop vegetables and toss with oil and herbs.","Spread on baking sheet, season.","Roast 30-35 min, turning once.","Drizzle with tahini and lemon before serving."], nutrition:{cal:195,protein:5,carbs:22,fat:11} },
+  { id:19, title:"French Omelette", emoji:"🥚", desc:"Classic 3-egg French omelette with herbs and gruyère – ready in under 5 minutes.", time:5, servings:1, tags:["vegetarian","gluten-free","quick"], ingredients:["eggs","butter","gruyere","chives","salt","pepper"], steps:["Whisk eggs vigorously with salt and pepper.","Melt butter in non-stick pan over medium heat.","Pour in eggs, stir with a spatula.","When just setting, add cheese and fold.","Slide onto plate, garnish with chives."], nutrition:{cal:330,protein:22,carbs:2,fat:26} },
+  { id:20, title:"Mango Coconut Smoothie", emoji:"🥭", desc:"Tropical bliss in a glass – mango, coconut milk, lime and a hint of ginger.", time:5, servings:2, tags:["vegan","gluten-free","quick"], ingredients:["mango","coconut milk","lime","ginger","banana","ice","honey"], steps:["Peel and chop mango and banana.","Add all ingredients to blender.","Blend until completely smooth.","Adjust sweetness with honey.","Pour over ice and serve."], nutrition:{cal:230,protein:3,carbs:42,fat:8} }
+];
+
+let userIngredients = [];
+let activeFilters = [];
+let currentRecipes = [];
+let favorites = JSON.parse(localStorage.getItem('saveur_favs') || '[]');
+let isDark = false;
+let showingFavs = false;
+let recognition = null;
+let isListening = false;
+
+function updateFavCount() { document.getElementById('fav-count').textContent = favorites.length; }
+updateFavCount();
+
+function handleIngKey(e) { if(e.key === 'Enter') addIngredient(); }
+
+function addIngredient() {
+  const input = document.getElementById('ing-input');
+  const raw = input.value.trim();
+  if(!raw) return;
+  raw.split(',').forEach(i => {
+    const v = i.trim().toLowerCase();
+    if(v && !userIngredients.includes(v)) { userIngredients.push(v); renderChips(); }
+  });
+  input.value = '';
+}
+
+function renderChips() {
+  const c = document.getElementById('chips-container');
+  c.innerHTML = userIngredients.map(i => `<div class="chip">${i}<button class="chip-x" onclick="removeIng('${i}')">×</button></div>`).join('');
+}
+
+function removeIng(i) { userIngredients = userIngredients.filter(x=>x!==i); renderChips(); }
+
+function toggleFilter(btn) {
+  btn.classList.toggle('active');
+  const f = btn.dataset.filter;
+  activeFilters = activeFilters.includes(f) ? activeFilters.filter(x=>x!==f) : [...activeFilters, f];
+}
+
+function matchScore(recipe) {
+  const userLower = userIngredients.map(i=>i.toLowerCase());
+  let matches = 0;
+  recipe.ingredients.forEach(ri => {
+    if(userLower.some(ui=>ri.includes(ui)||ui.includes(ri))) matches++;
+  });
+  return { matches, total:recipe.ingredients.length, pct: Math.round((matches/recipe.ingredients.length)*100) };
+}
+
+function getMatchedIngredients(recipe) {
+  const userLower = userIngredients.map(i=>i.toLowerCase());
+  const matched = [], missing = [];
+  recipe.ingredients.forEach(ri => {
+    if(userLower.some(ui=>ri.includes(ui)||ui.includes(ri))) matched.push(ri);
+    else missing.push(ri);
+  });
+  return { matched, missing };
+}
+
+function applyFilters(recipes) {
+  return recipes.filter(r => {
+    if(activeFilters.includes('vegetarian') && !r.tags.includes('vegetarian') && !r.tags.includes('vegan')) return false;
+    if(activeFilters.includes('vegan') && !r.tags.includes('vegan')) return false;
+    if(activeFilters.includes('gluten-free') && !r.tags.includes('gluten-free')) return false;
+    if(activeFilters.includes('quick') && r.time >= 30) return false;
+    return true;
+  });
+}
+
+function generateRecipes() {
+  if(userIngredients.length === 0) {
+    alert('Please add at least one ingredient!');
+    return;
+  }
+  const btn = document.getElementById('gen-btn');
+  btn.disabled = true;
+  document.getElementById('gen-text').textContent = '⏳ Generating…';
+  document.getElementById('empty-state').style.display='none';
+  document.getElementById('loading-state').style.display='block';
+  document.getElementById('results-header').style.display='none';
+  document.getElementById('recipes-grid').innerHTML='';
+  document.getElementById('search-wrap').style.display='none';
+  setTimeout(() => {
+    let scored = RECIPES.map(r => ({ ...r, score: matchScore(r) }))
+      .sort((a,b) => b.score.matches - a.score.matches || a.score.total - b.score.total);
+    scored = applyFilters(scored).slice(0, 5);
+    currentRecipes = scored;
+    document.getElementById('loading-state').style.display='none';
+    document.getElementById('results-header').style.display='flex';
+    document.getElementById('results-count').textContent = `${scored.length} recipe${scored.length!==1?'s':''} found`;
+    document.getElementById('search-wrap').style.display='block';
+    renderRecipes(scored, 'recipes-grid');
+    btn.disabled = false;
+    document.getElementById('gen-text').textContent = '✨ Generate Recipes';
+    if(showingFavs) { showingFavs=false; document.getElementById('favs-panel').classList.remove('visible'); }
+  }, 900);
+}
+
+function renderRecipes(recipes, gridId) {
+  const grid = document.getElementById(gridId);
+  if(recipes.length === 0) { grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:2rem;color:var(--text3)">No recipes match your filters.</div>'; return; }
+  grid.innerHTML = recipes.map((r, idx) => {
+    const { matched, missing } = getMatchedIngredients(r);
+    const pct = r.score ? r.score.pct : 100;
+    const isFav = favorites.includes(r.id);
+    const barColor = pct >= 70 ? 'var(--green)' : pct >= 40 ? 'var(--orange)' : 'var(--red)';
+    const dietBadges = r.tags.filter(t=>t!=='quick').map(t=>`<span class="badge badge-diet">${t}</span>`).join('');
+    const matchBadge = r.score ? `<span class="badge badge-match">${pct}% match</span>` : '';
+    const ingTags = [...matched.slice(0,4).map(i=>`<span class="ing-tag ing-match">✓ ${i}</span>`), ...missing.slice(0,2).map(i=>`<span class="ing-tag ing-miss">+ ${i}</span>`)].join('');
+    return `<div class="recipe-card" style="animation-delay:${idx*0.07}s" onclick="openRecipe(${r.id})">
+      <div class="card-img" style="background:linear-gradient(135deg,var(--bg2),var(--green-bg));position:relative">
+        <div class="card-img-placeholder">${r.emoji}</div>
+        <div class="card-badges" style="position:absolute;top:10px;left:10px">
+          ${matchBadge}${dietBadges}<span class="badge badge-time">⏱ ${r.time}m</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-title">${r.title}</div>
+        <div class="card-desc">${r.desc}</div>
+        <div class="card-meta"><span>👥 ${r.servings} servings</span><span>🥘 ${r.ingredients.length} ingredients</span></div>
+        ${r.score ? `<div class="match-bar"><div class="match-bar-fill" style="width:${pct}%;background:${barColor}"></div></div>` : ''}
+        <div class="card-ingredients">${ingTags}</div>
+        <div class="nutrition-mini">
+          <span><strong>${r.nutrition.cal}</strong>kcal</span>
+          <span><strong>${r.nutrition.protein}g</strong>protein</span>
+          <span><strong>${r.nutrition.carbs}g</strong>carbs</span>
+          <span><strong>${r.nutrition.fat}g</strong>fat</span>
+        </div>
+        <div class="card-footer" style="margin-top:10px">
+          <button class="btn-view" onclick="event.stopPropagation();openRecipe(${r.id})">View Recipe →</button>
+          <button class="btn-fav" onclick="event.stopPropagation();toggleFav(${r.id},this)" title="Save favorite">${isFav?'❤️':'🤍'}</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterBySearch() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  if(!q) { renderRecipes(currentRecipes, 'recipes-grid'); return; }
+  const filtered = currentRecipes.filter(r => r.title.toLowerCase().includes(q) || r.ingredients.some(i=>i.includes(q)) || r.desc.toLowerCase().includes(q));
+  renderRecipes(filtered, 'recipes-grid');
+}
+
+function openRecipe(id) {
+  const r = RECIPES.find(x=>x.id===id);
+  if(!r) return;
+  const { matched, missing } = getMatchedIngredients(r);
+  const isFav = favorites.includes(r.id);
+  const allIngs = [...matched.map(i=>`<div class="ing-item have">✅ ${i}</div>`), ...missing.map(i=>`<div class="ing-item need">🛒 ${i}</div>`)].join('');
+  const stepsHTML = r.steps.map((s,i)=>`<li class="step-item"><div class="step-num">${i+1}</div><div class="step-text">${s}</div></li>`).join('');
+  const shoppingHTML = missing.length ? `<div class="shopping-list"><h5>🛒 Shopping List (${missing.length} items needed)</h5>${missing.map(i=>`<label class="shopping-item"><input type="checkbox"> ${i}</label>`).join('')}</div>` : `<div style="color:var(--green);font-size:13px;padding:10px;background:var(--green-bg);border-radius:var(--radius-sm)">✅ You have all ingredients!</div>`;
+  const dietTags = r.tags.map(t=>`<span class="badge badge-diet" style="background:var(--green-bg)">${t}</span>`).join(' ');
+  document.getElementById('modal-content').innerHTML = `
+    <div class="modal-header">
+      <div class="modal-img" style="background:linear-gradient(135deg,var(--bg2),var(--green-bg))">${r.emoji}</div>
+      <button class="modal-close" onclick="document.getElementById('modal').style.display='none'">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-title">${r.title}</div>
+      <div class="modal-meta"><span>⏱ ${r.time} minutes</span><span>👥 ${r.servings} servings</span>${dietTags}</div>
+      <div class="modal-desc">${r.desc}</div>
+      <div class="modal-section"><h4>Ingredients</h4><div class="ingredients-cols">${allIngs}</div></div>
+      <div class="modal-section"><h4>Nutrition per serving</h4><div class="nutrition-grid">
+        <div class="nut-card"><div class="nut-val">${r.nutrition.cal}</div><div class="nut-label">Calories</div></div>
+        <div class="nut-card"><div class="nut-val">${r.nutrition.protein}g</div><div class="nut-label">Protein</div></div>
+        <div class="nut-card"><div class="nut-val">${r.nutrition.carbs}g</div><div class="nut-label">Carbs</div></div>
+        <div class="nut-card"><div class="nut-val">${r.nutrition.fat}g</div><div class="nut-label">Fat</div></div>
+      </div></div>
+      <div class="modal-section"><h4>Instructions</h4><ol class="steps-list">${stepsHTML}</ol></div>
+      <div class="modal-section"><h4>Shopping List</h4>${shoppingHTML}</div>
+      <div class="modal-actions">
+        <button class="btn-modal-fav" onclick="toggleFavModal(${r.id}, this)">${isFav?'❤️ Remove Favorite':'🤍 Save Favorite'}</button>
+        <button class="btn-copy" onclick="copyRecipe(${r.id})">📋 Copy Recipe</button>
+      </div>
+    </div>`;
+  document.getElementById('modal').style.display='flex';
+  document.body.style.overflow='hidden';
+}
+
+function closeModal(e) {
+  if(e.target.id==='modal') { document.getElementById('modal').style.display='none'; document.body.style.overflow=''; }
+}
+
+function toggleFav(id, btn) {
+  if(favorites.includes(id)) { favorites=favorites.filter(x=>x!==id); if(btn) btn.textContent='🤍'; }
+  else { favorites.push(id); if(btn) btn.textContent='❤️'; }
+  localStorage.setItem('saveur_favs', JSON.stringify(favorites));
+  updateFavCount();
+  if(showingFavs) renderFavs();
+}
+
+function toggleFavModal(id, btn) {
+  toggleFav(id, null);
+  btn.textContent = favorites.includes(id) ? '❤️ Remove Favorite' : '🤍 Save Favorite';
+  const gridBtns = document.querySelectorAll('.btn-fav');
+  gridBtns.forEach(b => { if(b.onclick && b.onclick.toString().includes(id)) b.textContent = favorites.includes(id)?'❤️':'🤍'; });
+}
+
+function copyRecipe(id) {
+  const r = RECIPES.find(x=>x.id===id);
+  const text = `${r.title}\n\nIngredients:\n${r.ingredients.join(', ')}\n\nSteps:\n${r.steps.map((s,i)=>`${i+1}. ${s}`).join('\n')}`;
+  navigator.clipboard.writeText(text).then(()=>alert('Recipe copied to clipboard!'));
+}
+
+function toggleFavs() {
+  showingFavs = !showingFavs;
+  document.getElementById('favs-panel').classList.toggle('visible', showingFavs);
+  if(showingFavs) renderFavs();
+}
+
+function renderFavs() {
+  const favRecipes = RECIPES.filter(r=>favorites.includes(r.id)).map(r=>({...r,score:null}));
+  document.getElementById('favs-empty').style.display = favRecipes.length===0?'block':'none';
+  renderRecipes(favRecipes, 'favs-grid');
+}
+
+function surpriseMe() {
+  const pool = applyFilters(RECIPES);
+  if(pool.length===0) { alert('No recipes match current filters. Try removing some filters.'); return; }
+  const r = pool[Math.floor(Math.random()*pool.length)];
+  openRecipe(r.id);
+}
+
+function toggleDark() {
+  isDark = !isDark;
+  document.documentElement.classList.toggle('dark', isDark);
+  document.getElementById('dark-icon').textContent = isDark ? '☀️' : '🌙';
+  document.getElementById('dark-label').textContent = isDark ? 'Light' : 'Dark';
+}
+
+function toggleVoice() {
+  if(!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    alert('Voice input is not supported in your browser. Please type ingredients manually.');
+    return;
+  }
+  if(isListening) { recognition.stop(); return; }
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SpeechRecognition();
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  recognition.lang = 'en-US';
+  recognition.onstart = ()=>{ isListening=true; document.getElementById('voice-btn').classList.add('listening'); document.getElementById('voice-btn').textContent='🔴'; };
+  recognition.onend = ()=>{ isListening=false; document.getElementById('voice-btn').classList.remove('listening'); document.getElementById('voice-btn').textContent='🎤'; };
+  recognition.onresult = (e)=>{ const t=e.results[0][0].transcript; document.getElementById('ing-input').value=t; addIngredient(); };
+  recognition.onerror = ()=>{ isListening=false; document.getElementById('voice-btn').classList.remove('listening'); document.getElementById('voice-btn').textContent='🎤'; };
+  recognition.start();
+}
+</script>
+</body>
+</html>

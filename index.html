@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Saveur – Find delicious recipes using ingredients you already have at home." />
+  <meta name="theme-color" content="#FAFAF7" />
+  <title>Saveur – Recipe Discovery</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,600&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+
+  <!-- ═══════════════════════════════════════════════
+       TOAST NOTIFICATION CONTAINER
+       JS will inject <div class="toast"> elements here
+  ═══════════════════════════════════════════════ -->
+  <div id="toast-container" role="status" aria-live="polite" aria-atomic="true"></div>
+
+
+  <!-- ═══════════════════════════════════════════════
+       NAVIGATION
+  ═══════════════════════════════════════════════ -->
+  <header class="site-header" role="banner">
+    <nav class="navbar" aria-label="Main navigation">
+
+      <!-- Brand -->
+      <a href="#" class="nav-brand" aria-label="Saveur home">
+        <span class="nav-brand__icon" aria-hidden="true">🥘</span>
+        <span class="nav-brand__name">Saveur</span>
+      </a>
+
+      <!-- Primary Tab Navigation (switches between the two main views) -->
+      <div class="nav-tabs" role="tablist" aria-label="App sections">
+        <button
+          class="nav-tab nav-tab--active"
+          role="tab"
+          id="tab-discover"
+          aria-selected="true"
+          aria-controls="view-discover"
+          data-view="discover"
+        >
+          <span class="nav-tab__icon" aria-hidden="true">🔍</span>
+          <span class="nav-tab__label">Discover</span>
+        </button>
+        <button
+          class="nav-tab"
+          role="tab"
+          id="tab-kitchen"
+          aria-selected="false"
+          aria-controls="view-kitchen"
+          data-view="kitchen"
+        >
+          <span class="nav-tab__icon" aria-hidden="true">❤️</span>
+          <span class="nav-tab__label">My Kitchen</span>
+          <!-- JS will update the count badge -->
+          <span class="nav-tab__badge" id="fav-count-badge" aria-label="0 saved recipes" hidden>0</span>
+        </button>
+      </div>
+
+      <!-- Nav Utilities -->
+      <div class="nav-utils">
+        <button
+          class="btn-icon-pill"
+          id="dark-mode-toggle"
+          aria-label="Switch to dark mode"
+          aria-pressed="false"
+          title="Toggle dark mode"
+        >
+          <span class="btn-icon-pill__icon" id="dark-mode-icon" aria-hidden="true">🌙</span>
+          <span class="btn-icon-pill__label" id="dark-mode-label">Dark</span>
+        </button>
+      </div>
+
+    </nav>
+  </header>
+
+
+  <!-- ═══════════════════════════════════════════════
+       MAIN CONTENT
+  ═══════════════════════════════════════════════ -->
+  <main id="main-content">
+
+
+    <!-- ─────────────────────────────────────────
+         VIEW 1: DISCOVER
+         The primary ingredient-input + results view
+    ───────────────────────────────────────── -->
+    <section
+      id="view-discover"
+      class="view view--active"
+      role="tabpanel"
+      aria-labelledby="tab-discover"
+      tabindex="0"
+    >
+
+      <!-- Hero -->
+      <div class="hero">
+        <div class="hero__content">
+          <p class="hero__eyebrow">Smart recipe discovery</p>
+          <h1 class="hero__headline">
+            Turn what's in your<br />
+            kitchen into <em>something delicious</em>
+          </h1>
+          <p class="hero__sub">
+            Add the ingredients you already have. We'll find the best
+            recipes you can make right now — no grocery run required.
+          </p>
+        </div>
+
+        <!-- Decorative floating badges — pure CSS, aria-hidden -->
+        <div class="hero__decoration" aria-hidden="true">
+          <span class="hero__pill hero__pill--1">🧄 garlic</span>
+          <span class="hero__pill hero__pill--2">🍋 lemon</span>
+          <span class="hero__pill hero__pill--3">🥚 eggs</span>
+          <span class="hero__pill hero__pill--4">🧅 onion</span>
+          <span class="hero__pill hero__pill--5">🍅 tomato</span>
+        </div>
+      </div>
+      <!-- /hero -->
+
+
+      <!-- Ingredient Input Panel -->
+      <section class="input-panel" aria-labelledby="input-panel-heading">
+        <h2 class="sr-only" id="input-panel-heading">Add your ingredients</h2>
+
+        <div class="input-card">
+
+          <!-- Input Row -->
+          <div class="input-row" role="group" aria-label="Ingredient entry">
+            <label for="ingredient-input" class="sr-only">Type an ingredient</label>
+            <input
+              type="text"
+              id="ingredient-input"
+              class="ingredient-input"
+              placeholder="Type an ingredient (e.g. chicken, garlic…)"
+              autocomplete="off"
+              autocapitalize="none"
+              spellcheck="false"
+              aria-describedby="input-hint"
+            />
+            <button
+              class="btn-voice"
+              id="voice-btn"
+              type="button"
+              aria-label="Add ingredient by voice"
+              title="Voice input"
+            >
+              <span aria-hidden="true">🎤</span>
+            </button>
+            <button class="btn-add" id="add-btn" type="button">
+              Add
+            </button>
+          </div>
+          <p class="input-hint" id="input-hint">
+            Separate multiple ingredients with commas. Press Enter or click Add.
+          </p>
+
+          <!-- Ingredient Chips
+               JS renders <div class="chip">…</div> elements here -->
+          <div
+            class="chips-container"
+            id="chips-container"
+            role="list"
+            aria-label="Added ingredients"
+            aria-live="polite"
+          >
+            <!-- placeholder shown when no ingredients added -->
+            <p class="chips-placeholder" id="chips-placeholder" aria-hidden="true">
+              Your ingredients will appear here…
+            </p>
+          </div>
+
+          <!-- Divider -->
+          <div class="input-divider" role="separator" aria-hidden="true"></div>
+
+          <!-- Filter Bar -->
+          <div class="filter-bar" role="group" aria-label="Recipe filters">
+            <span class="filter-bar__label" aria-hidden="true">Filter by:</span>
+
+            <!-- Diet Filters -->
+            <div class="filter-group" role="group" aria-label="Dietary filters">
+              <button class="filter-chip" data-filter="vegetarian" aria-pressed="false" type="button">
+                🥦 Vegetarian
+              </button>
+              <button class="filter-chip" data-filter="vegan" aria-pressed="false" type="button">
+                🌱 Vegan
+              </button>
+              <button class="filter-chip" data-filter="gluten-free" aria-pressed="false" type="button">
+                🌾 Gluten-Free
+              </button>
+            </div>
+
+            <!-- Time Filters -->
+            <div class="filter-group" role="group" aria-label="Time filters">
+              <button class="filter-chip" data-filter="quick" aria-pressed="false" type="button">
+                ⚡ Under 30 min
+              </button>
+              <button class="filter-chip" data-filter="under60" aria-pressed="false" type="button">
+                🕐 Under 1 hour
+              </button>
+            </div>
+
+            <!-- Cuisine Filters -->
+            <div class="filter-group" role="group" aria-label="Cuisine filters">
+              <button class="filter-chip" data-filter="italian" aria-pressed="false" type="button">
+                🍝 Italian
+              </button>
+              <button class="filter-chip" data-filter="asian" aria-pressed="false" type="button">
+                🍜 Asian
+              </button>
+              <button class="filter-chip" data-filter="mediterranean" aria-pressed="false" type="button">
+                🫒 Mediterranean
+              </button>
+            </div>
+
+            <!-- Clear All Filters -->
+            <button class="btn-clear-filters" id="clear-filters-btn" type="button" hidden>
+              Clear all
+            </button>
+          </div>
+          <!-- /filter-bar -->
+
+          <!-- Action Buttons -->
+          <div class="action-row">
+            <button class="btn-generate" id="generate-btn" type="button" disabled aria-disabled="true">
+              <span class="btn-generate__icon" aria-hidden="true">✨</span>
+              <span class="btn-generate__label" id="generate-label">Generate Recipes</span>
+            </button>
+            <button class="btn-surprise" id="surprise-btn" type="button" title="Open a random recipe">
+              <span aria-hidden="true">🎲</span>
+              Surprise Me
+            </button>
+          </div>
+
+        </div>
+        <!-- /input-card -->
+      </section>
+      <!-- /input-panel -->
+
+
+      <!-- Results Section -->
+      <section
+        class="results-section"
+        id="results-section"
+        aria-labelledby="results-heading"
+        aria-live="polite"
+        aria-atomic="false"
+      >
+
+        <!-- Results Header (hidden until results load) -->
+        <div class="results-header" id="results-header" hidden>
+          <div class="results-header__left">
+            <h2 class="results-heading" id="results-heading">Recipes for you</h2>
+            <!-- JS updates this -->
+            <p class="results-count" id="results-count" aria-live="polite"></p>
+          </div>
+          <div class="results-header__right">
+            <!-- Search within results -->
+            <div class="search-bar" role="search" aria-label="Filter results">
+              <label for="results-search" class="sr-only">Search within results</label>
+              <span class="search-bar__icon" aria-hidden="true">🔎</span>
+              <input
+                type="search"
+                id="results-search"
+                class="search-bar__input"
+                placeholder="Search results…"
+                autocomplete="off"
+              />
+            </div>
+            <!-- Sort control -->
+            <div class="sort-control">
+              <label for="sort-select" class="sr-only">Sort recipes by</label>
+              <select id="sort-select" class="sort-select" aria-label="Sort recipes">
+                <option value="match">Best Match</option>
+                <option value="time">Quickest First</option>
+                <option value="calories">Lowest Calories</option>
+                <option value="ingredients">Fewest Ingredients</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <!-- /results-header -->
+
+
+        <!-- Loading State (shown while JS "generates" results) -->
+        <div class="loading-state" id="loading-state" hidden aria-label="Loading recipes" role="status">
+          <div class="loading-state__spinner" aria-hidden="true"></div>
+          <p class="loading-state__text">Finding your perfect recipes…</p>
+          <div class="loading-state__skeleton-grid" aria-hidden="true">
+            <!-- Three skeleton cards -->
+            <div class="skeleton-card"><div class="skeleton skeleton--img"></div><div class="skeleton skeleton--title"></div><div class="skeleton skeleton--line"></div><div class="skeleton skeleton--line skeleton--line-short"></div></div>
+            <div class="skeleton-card"><div class="skeleton skeleton--img"></div><div class="skeleton skeleton--title"></div><div class="skeleton skeleton--line"></div><div class="skeleton skeleton--line skeleton--line-short"></div></div>
+            <div class="skeleton-card"><div class="skeleton skeleton--img"></div><div class="skeleton skeleton--title"></div><div class="skeleton skeleton--line"></div><div class="skeleton skeleton--line skeleton--line-short"></div></div>
+          </div>
+        </div>
+
+
+        <!-- Empty / Prompt State (shown before first search) -->
+        <div class="empty-state" id="empty-state-initial">
+          <span class="empty-state__icon" aria-hidden="true">🥗</span>
+          <h3 class="empty-state__heading">Ready when you are</h3>
+          <p class="empty-state__body">Add at least one ingredient above, then hit <strong>Generate Recipes</strong> to discover what you can make.</p>
+        </div>
+
+
+        <!-- No Results State (shown when filters match nothing) -->
+        <div class="empty-state" id="empty-state-no-results" hidden>
+          <span class="empty-state__icon" aria-hidden="true">🔍</span>
+          <h3 class="empty-state__heading">No recipes found</h3>
+          <p class="empty-state__body">Try removing some filters, or add more ingredients to broaden your search.</p>
+          <button class="btn-ghost" id="reset-filters-btn" type="button">Reset filters</button>
+        </div>
+
+
+        <!-- Recipe Grid
+             JS renders <article class="recipe-card">…</article> elements here -->
+        <div
+          class="recipes-grid"
+          id="recipes-grid"
+          role="list"
+          aria-label="Recipe results"
+        >
+          <!-- Recipe cards injected by script.js -->
+        </div>
+
+      </section>
+      <!-- /results-section -->
+
+    </section>
+    <!-- /view-discover -->
+
+
+    <!-- ─────────────────────────────────────────
+         VIEW 2: MY KITCHEN
+         Favorites, recently viewed, and shopping list
+    ───────────────────────────────────────── -->
+    <section
+      id="view-kitchen"
+      class="view"
+      role="tabpanel"
+      aria-labelledby="tab-kitchen"
+      tabindex="0"
+      hidden
+    >
+
+      <!-- Kitchen Hero Bar -->
+      <div class="kitchen-header">
+        <div class="kitchen-header__text">
+          <h2 class="kitchen-header__heading">My Kitchen</h2>
+          <p class="kitchen-header__sub">Your saved recipes and shopping lists, all in one place.</p>
+        </div>
+        <div class="kitchen-header__actions">
+          <button class="btn-ghost" id="clear-favorites-btn" type="button">
+            Clear all favorites
+          </button>
+        </div>
+      </div>
+
+
+      <!-- Kitchen Stats Bar -->
+      <div class="kitchen-stats" aria-label="Kitchen summary">
+        <div class="kitchen-stat">
+          <span class="kitchen-stat__value" id="stat-saved">0</span>
+          <span class="kitchen-stat__label">Saved recipes</span>
+        </div>
+        <div class="kitchen-stat">
+          <span class="kitchen-stat__value" id="stat-shopping">0</span>
+          <span class="kitchen-stat__label">Shopping items</span>
+        </div>
+        <div class="kitchen-stat">
+          <span class="kitchen-stat__value" id="stat-recent">0</span>
+          <span class="kitchen-stat__label">Recently viewed</span>
+        </div>
+      </div>
+
+
+      <!-- Kitchen Tabs (sub-navigation within My Kitchen) -->
+      <div class="kitchen-tabs" role="tablist" aria-label="My Kitchen sections">
+        <button
+          class="kitchen-tab kitchen-tab--active"
+          role="tab"
+          id="ktab-favorites"
+          aria-selected="true"
+          aria-controls="kview-favorites"
+          data-kview="favorites"
+        >
+          ❤️ Favorites
+        </button>
+        <button
+          class="kitchen-tab"
+          role="tab"
+          id="ktab-shopping"
+          aria-selected="false"
+          aria-controls="kview-shopping"
+          data-kview="shopping"
+        >
+          🛒 Shopping List
+        </button>
+        <button
+          class="kitchen-tab"
+          role="tab"
+          id="ktab-recent"
+          aria-selected="false"
+          aria-controls="kview-recent"
+          data-kview="recent"
+        >
+          🕐 Recently Viewed
+        </button>
+      </div>
+
+
+      <!-- ── Kitchen Sub-view: Favorites ── -->
+      <div
+        id="kview-favorites"
+        class="kitchen-view kitchen-view--active"
+        role="tabpanel"
+        aria-labelledby="ktab-favorites"
+      >
+        <!-- Empty favorites state -->
+        <div class="empty-state" id="empty-favorites" hidden>
+          <span class="empty-state__icon" aria-hidden="true">🤍</span>
+          <h3 class="empty-state__heading">No favorites yet</h3>
+          <p class="empty-state__body">When you find a recipe you love, tap the heart icon to save it here.</p>
+          <button class="btn-primary" id="go-discover-btn" type="button">Browse Recipes</button>
+        </div>
+
+        <!-- Favorites Grid
+             JS renders recipe cards here (same card component as Discover) -->
+        <div
+          class="recipes-grid"
+          id="favorites-grid"
+          role="list"
+          aria-label="Saved recipes"
+        >
+          <!-- Favorite recipe cards injected by script.js -->
+        </div>
+      </div>
+      <!-- /kview-favorites -->
+
+
+      <!-- ── Kitchen Sub-view: Shopping List ── -->
+      <div
+        id="kview-shopping"
+        class="kitchen-view"
+        role="tabpanel"
+        aria-labelledby="ktab-shopping"
+        hidden
+      >
+        <div class="shopping-panel">
+
+          <!-- Shopping list controls -->
+          <div class="shopping-controls">
+            <p class="shopping-controls__hint">
+              Items are added automatically when you open a recipe. Check them off as you shop.
+            </p>
+            <div class="shopping-controls__actions">
+              <button class="btn-ghost btn--small" id="check-all-btn" type="button">Check all</button>
+              <button class="btn-ghost btn--small btn--danger" id="clear-checked-btn" type="button">Remove checked</button>
+              <button class="btn-ghost btn--small" id="copy-list-btn" type="button">
+                <span aria-hidden="true">📋</span> Copy list
+              </button>
+            </div>
+          </div>
+
+          <!-- Shopping list organized by recipe
+               JS renders <section class="shopping-recipe-group">…</section> blocks here -->
+          <div
+            class="shopping-list"
+            id="shopping-list"
+            aria-label="Shopping list"
+            aria-live="polite"
+          >
+            <!-- Injected by script.js — grouped by recipe -->
+          </div>
+
+          <!-- Empty shopping state -->
+          <div class="empty-state" id="empty-shopping" hidden>
+            <span class="empty-state__icon" aria-hidden="true">🛒</span>
+            <h3 class="empty-state__heading">Your list is empty</h3>
+            <p class="empty-state__body">Open any recipe and missing ingredients will be added here automatically.</p>
+          </div>
+
+        </div>
+      </div>
+      <!-- /kview-shopping -->
+
+
+      <!-- ── Kitchen Sub-view: Recently Viewed ── -->
+      <div
+        id="kview-recent"
+        class="kitchen-view"
+        role="tabpanel"
+        aria-labelledby="ktab-recent"
+        hidden
+      >
+        <!-- Empty recently viewed state -->
+        <div class="empty-state" id="empty-recent" hidden>
+          <span class="empty-state__icon" aria-hidden="true">🕐</span>
+          <h3 class="empty-state__heading">Nothing viewed yet</h3>
+          <p class="empty-state__body">Recipes you open will appear here so you can quickly find them again.</p>
+        </div>
+
+        <!-- Recently viewed grid
+             JS renders recipe cards here -->
+        <div
+          class="recipes-grid"
+          id="recent-grid"
+          role="list"
+          aria-label="Recently viewed recipes"
+        >
+          <!-- Injected by script.js -->
+        </div>
+      </div>
+      <!-- /kview-recent -->
+
+    </section>
+    <!-- /view-kitchen -->
+
+
+  </main>
+  <!-- /main-content -->
+
+
+  <!-- ═══════════════════════════════════════════════
+       RECIPE MODAL
+       Shell is always in DOM. JS populates #modal-content
+       and sets aria-hidden="false" to open it.
+  ═══════════════════════════════════════════════ -->
+  <div
+    class="modal-overlay"
+    id="modal-overlay"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-recipe-title"
+    aria-hidden="true"
+    tabindex="-1"
+  >
+    <div class="modal" id="modal">
+
+      <!-- Modal Header Image / Emoji area -->
+      <div class="modal__hero" id="modal-hero" aria-hidden="true">
+        <!-- JS injects emoji or gradient here -->
+      </div>
+
+      <!-- Close button -->
+      <button
+        class="modal__close"
+        id="modal-close-btn"
+        type="button"
+        aria-label="Close recipe"
+      >
+        <span aria-hidden="true">✕</span>
+      </button>
+
+      <!-- Modal Scrollable Body -->
+      <div class="modal__body" id="modal-body">
+
+        <!-- Recipe Title & Meta — JS populates -->
+        <header class="modal__header">
+          <h2 class="modal__title" id="modal-recipe-title">
+            <!-- JS: recipe title -->
+          </h2>
+          <div class="modal__meta" id="modal-meta" aria-label="Recipe details">
+            <!-- JS injects: time, servings, dietary tags -->
+          </div>
+        </header>
+
+        <!-- Description -->
+        <p class="modal__desc" id="modal-desc">
+          <!-- JS: recipe description -->
+        </p>
+
+        <!-- Tabs within modal -->
+        <div class="modal-tabs" role="tablist" aria-label="Recipe sections">
+          <button class="modal-tab modal-tab--active" role="tab" id="mtab-overview" aria-selected="true" aria-controls="mview-overview" data-mview="overview" type="button">Overview</button>
+          <button class="modal-tab" role="tab" id="mtab-ingredients" aria-selected="false" aria-controls="mview-ingredients" data-mview="ingredients" type="button">Ingredients</button>
+          <button class="modal-tab" role="tab" id="mtab-steps" aria-selected="false" aria-controls="mview-steps" data-mview="steps" type="button">Steps</button>
+          <button class="modal-tab" role="tab" id="mtab-nutrition" aria-selected="false" aria-controls="mview-nutrition" data-mview="nutrition" type="button">Nutrition</button>
+        </div>
+
+        <!-- Modal Tab: Overview -->
+        <div id="mview-overview" class="modal-view modal-view--active" role="tabpanel" aria-labelledby="mtab-overview">
+
+          <!-- Match Score bar -->
+          <div class="modal__match-bar" id="modal-match-bar" aria-label="Ingredient match">
+            <div class="modal__match-bar-labels">
+              <span id="modal-match-label">% match</span>
+              <span id="modal-match-detail">of ingredients you have</span>
+            </div>
+            <div class="modal__match-track" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="modal-match-track">
+              <div class="modal__match-fill" id="modal-match-fill"></div>
+            </div>
+          </div>
+
+          <!-- Quick Ingredient Overview (have / need split) -->
+          <div class="modal__ingredient-overview" id="modal-ingredient-overview">
+            <div class="modal__ingredient-col">
+              <h3 class="modal__ingredient-col-heading modal__ingredient-col-heading--have">✅ You have</h3>
+              <ul class="modal__ingredient-list" id="modal-have-list" aria-label="Ingredients you have">
+                <!-- JS injects <li> items -->
+              </ul>
+            </div>
+            <div class="modal__ingredient-col">
+              <h3 class="modal__ingredient-col-heading modal__ingredient-col-heading--need">🛒 You need</h3>
+              <ul class="modal__ingredient-list" id="modal-need-list" aria-label="Ingredients you still need">
+                <!-- JS injects <li> items -->
+              </ul>
+            </div>
+          </div>
+
+        </div>
+        <!-- /mview-overview -->
+
+        <!-- Modal Tab: Full Ingredients -->
+        <div id="mview-ingredients" class="modal-view" role="tabpanel" aria-labelledby="mtab-ingredients" hidden>
+          <div class="modal__servings-control" aria-label="Adjust servings">
+            <span class="modal__servings-label">Servings:</span>
+            <button class="btn-stepper" id="servings-decrease" type="button" aria-label="Decrease servings">−</button>
+            <span class="modal__servings-value" id="modal-servings-value" aria-live="polite">4</span>
+            <button class="btn-stepper" id="servings-increase" type="button" aria-label="Increase servings">+</button>
+          </div>
+          <!-- Full ingredient list with scaled amounts — JS renders -->
+          <ul class="modal__full-ingredient-list" id="modal-full-ingredients" aria-label="Full ingredient list">
+            <!-- JS injects <li> items -->
+          </ul>
+        </div>
+        <!-- /mview-ingredients -->
+
+        <!-- Modal Tab: Steps -->
+        <div id="mview-steps" class="modal-view" role="tabpanel" aria-labelledby="mtab-steps" hidden>
+          <ol class="modal__steps" id="modal-steps" aria-label="Cooking instructions">
+            <!-- JS injects <li class="modal__step"> items -->
+          </ol>
+        </div>
+        <!-- /mview-steps -->
+
+        <!-- Modal Tab: Nutrition -->
+        <div id="mview-nutrition" class="modal-view" role="tabpanel" aria-labelledby="mtab-nutrition" hidden>
+          <p class="modal__nutrition-note">Values are approximate and per serving.</p>
+          <div class="nutrition-grid" id="modal-nutrition-grid" aria-label="Nutritional information">
+            <!-- JS injects .nutrition-card elements -->
+          </div>
+        </div>
+        <!-- /mview-nutrition -->
+
+        <!-- Modal Actions Footer -->
+        <footer class="modal__actions">
+          <button class="btn-favorite" id="modal-fav-btn" type="button" aria-pressed="false" aria-label="Save to favorites">
+            <span class="btn-favorite__icon" id="modal-fav-icon" aria-hidden="true">🤍</span>
+            <span class="btn-favorite__label" id="modal-fav-label">Save Recipe</span>
+          </button>
+          <button class="btn-add-shopping" id="modal-shopping-btn" type="button" aria-label="Add missing ingredients to shopping list">
+            <span aria-hidden="true">🛒</span>
+            Add to Shopping List
+          </button>
+          <button class="btn-share" id="modal-copy-btn" type="button" aria-label="Copy recipe to clipboard">
+            <span aria-hidden="true">📋</span>
+            Copy
+          </button>
+        </footer>
+
+      </div>
+      <!-- /modal-body -->
+    </div>
+    <!-- /modal -->
+  </div>
+  <!-- /modal-overlay -->
+
+
+  <!-- ═══════════════════════════════════════════════
+       SITE FOOTER
+  ═══════════════════════════════════════════════ -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="site-footer__inner">
+      <div class="site-footer__brand">
+        <span aria-hidden="true">🥘</span>
+        <strong>Saveur</strong>
+      </div>
+      <p class="site-footer__tagline">
+        Cook more. Waste less. Eat well.
+      </p>
+      <p class="site-footer__copy">
+        &copy; <span id="footer-year">2025</span> Saveur. Made for home cooks everywhere.
+      </p>
+    </div>
+  </footer>
+
+
+  <!-- ═══════════════════════════════════════════════
+       SCRIPTS
+  ═══════════════════════════════════════════════ -->
+  <script src="script.js" defer></script>
+
+</body>
+</html>
